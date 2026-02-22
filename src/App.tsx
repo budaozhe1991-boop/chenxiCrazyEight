@@ -38,6 +38,22 @@ interface CardProps {
   key?: React.Key;
 }
 
+const ZOOTOPIA_ANIMALS: Record<string, { name: string; image: string }> = {
+  '2': { name: '闪电', image: 'https://picsum.photos/seed/sloth/200/300' },
+  '3': { name: '芬尼克', image: 'https://picsum.photos/seed/fox2/200/300' },
+  '4': { name: '豹警官', image: 'https://picsum.photos/seed/cheetah/200/300' },
+  '5': { name: '牛局长', image: 'https://picsum.photos/seed/buffalo/200/300' },
+  '6': { name: '羊市长', image: 'https://picsum.photos/seed/sheep/200/300' },
+  '7': { name: '狮市长', image: 'https://picsum.photos/seed/lion/200/300' },
+  '8': { name: '尼克', image: 'https://picsum.photos/seed/fox/200/300' },
+  '9': { name: '朱迪', image: 'https://picsum.photos/seed/rabbit/200/300' },
+  '10': { name: '志豪', image: 'https://picsum.photos/seed/gazelle/200/300' },
+  'J': { name: '雅克斯', image: 'https://picsum.photos/seed/yak/200/300' },
+  'Q': { name: '露露', image: 'https://picsum.photos/seed/shrew/200/300' },
+  'K': { name: '大先生', image: 'https://picsum.photos/seed/mrbig/200/300' },
+  'A': { name: '曼查斯', image: 'https://picsum.photos/seed/jaguar/200/300' },
+};
+
 const Card = ({ 
   card, 
   onClick, 
@@ -72,14 +88,17 @@ const Card = ({
           }}
         />
         
-        <div className="absolute inset-2 border-2 border-white/20 rounded-md flex items-center justify-center bg-indigo-900/40 backdrop-blur-[1px]">
-          <span className="text-white font-black text-2xl sm:text-4xl drop-shadow-lg">T</span>
+        <div className="absolute inset-2 border-2 border-white/20 rounded-md flex flex-col items-center justify-center bg-indigo-900/40 backdrop-blur-[1px]">
+          <span className="text-white font-black text-lg sm:text-2xl drop-shadow-lg leading-tight">陈</span>
+          <span className="text-white font-black text-lg sm:text-2xl drop-shadow-lg leading-tight">熙</span>
         </div>
       </motion.div>
     );
   }
 
   if (!card) return null;
+
+  const animal = ZOOTOPIA_ANIMALS[card.rank];
 
   return (
     <motion.div
@@ -90,16 +109,33 @@ const Card = ({
       onClick={isPlayable ? onClick : undefined}
       className={`relative w-16 h-24 sm:w-24 sm:h-36 bg-white rounded-lg border-2 ${
         isPlayable ? 'border-yellow-400 cursor-pointer shadow-yellow-400/50' : 'border-slate-200'
-      } shadow-xl flex flex-col p-0 select-none ${className}`}
+      } shadow-xl flex flex-col p-0 select-none overflow-hidden ${className}`}
     >
-      <div className={`flex flex-col items-start leading-none pt-0.5 sm:pt-1 pl-1 sm:pl-1.5 ${SUIT_COLORS[card.suit]}`}>
+      <div className={`flex flex-col items-start leading-none pt-0.5 sm:pt-1 pl-1 sm:pl-1.5 ${SUIT_COLORS[card.suit]} z-10`}>
         <span className="text-sm sm:text-lg font-bold">{card.rank}</span>
         <span className="text-[10px] sm:text-xs -mt-1">{SUIT_SYMBOLS[card.suit]}</span>
       </div>
-      <div className={`flex-1 flex items-center justify-center text-2xl sm:text-5xl ${SUIT_COLORS[card.suit]}`}>
-        {SUIT_SYMBOLS[card.suit]}
+      
+      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+        {animal && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <img 
+              src={animal.image} 
+              alt={animal.name}
+              className="w-full h-full object-cover opacity-20 grayscale"
+              referrerPolicy="no-referrer"
+            />
+            <span className="absolute bottom-1 text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+              {animal.name}
+            </span>
+          </div>
+        )}
+        <div className={`text-2xl sm:text-5xl ${SUIT_COLORS[card.suit]} drop-shadow-sm z-10`}>
+          {SUIT_SYMBOLS[card.suit]}
+        </div>
       </div>
-      <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]}`}>
+
+      <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]} z-10`}>
         <span className="text-sm sm:text-lg font-bold">{card.rank}</span>
         <span className="text-[10px] sm:text-xs -mt-1">{SUIT_SYMBOLS[card.suit]}</span>
       </div>
@@ -169,6 +205,77 @@ const GameOverModal = ({ winner, onRestart }: { winner: PlayerType | null; onRes
 
 // --- Main App ---
 
+const GameStartModal = ({ onStart }: { onStart: () => void }) => {
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        className="bg-white rounded-[2rem] p-8 sm:p-12 max-w-lg w-full shadow-2xl overflow-hidden relative"
+      >
+        {/* Zootopia Background Image for Modal */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <img 
+            src="https://picsum.photos/seed/zootopia-city/800/600" 
+            alt="Zootopia City" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500" />
+        
+        <div className="relative z-10 flex flex-col items-center mb-8">
+          <div className="w-24 h-24 bg-yellow-500 rounded-3xl flex items-center justify-center shadow-xl shadow-yellow-500/20 mb-4 transform -rotate-6 border-4 border-white">
+            <span className="font-black text-5xl text-white drop-shadow-md">8</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight text-center leading-tight">
+            陈熙超级<br/>疯狂 8 点
+          </h1>
+          <div className="mt-3 px-4 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full">
+            Zootopia Edition
+          </div>
+        </div>
+
+        <div className="relative z-10 space-y-6 mb-10">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Info size={20} className="text-orange-500" />
+              游戏规则
+            </h2>
+            <ul className="space-y-3 text-slate-600 text-sm leading-relaxed">
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
+                <span>每人起始 8 张牌，率先出完所有牌的一方获胜。</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
+                <span>出牌必须与弃牌堆顶部的牌<b>花色相同</b>或<b>数字相同</b>。</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">3</span>
+                <span><b>数字 8 是万能牌！</b> 可以在任何时候打出，并允许你指定新的花色。</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">4</span>
+                <span>如果没有可出的牌，必须从摸牌堆摸一张牌。</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <button
+          onClick={onStart}
+          className="relative z-10 w-full py-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-orange-500/30 transition-all active:scale-95 flex items-center justify-center gap-3 group"
+        >
+          进入动物城
+          <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function App() {
   const [state, setState] = useState<GameState>({
     deck: [],
@@ -211,9 +318,10 @@ export default function App() {
     setPendingEight(false);
   }, []);
 
-  useEffect(() => {
-    initGame();
-  }, [initGame]);
+  // 移除自动开始，改为由开始按钮触发
+  // useEffect(() => {
+  //   initGame();
+  // }, [initGame]);
 
   const topCard = state.discardPile.length > 0 ? state.discardPile[state.discardPile.length - 1] : null;
 
@@ -320,9 +428,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a472a] text-white font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col">
+    <div className="min-h-screen relative text-white font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col">
+      {/* Zootopia Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://picsum.photos/seed/zootopia-landscape/1920/1080" 
+          alt="Zootopia Background" 
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 backdrop-blur-[2px]" />
+      </div>
+
       {/* Header */}
-      <header className="p-4 sm:p-6 flex items-center justify-between border-b border-white/10 bg-black/20 backdrop-blur-md">
+      <header className="relative z-10 p-4 sm:p-6 flex items-center justify-between border-b border-white/10 bg-black/20 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <span className="font-black text-xl">8</span>
@@ -438,7 +557,7 @@ export default function App() {
       </main>
 
       {/* Footer / Status Bar */}
-      <footer className="p-4 bg-black/40 border-t border-white/10 backdrop-blur-md">
+      <footer className="relative z-10 p-4 bg-black/40 border-t border-white/10 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-indigo-200">
             <Info size={18} />
@@ -459,6 +578,9 @@ export default function App() {
 
       {/* Modals */}
       <AnimatePresence>
+        {state.status === 'waiting' && (
+          <GameStartModal onStart={initGame} />
+        )}
         {state.status === 'picking_suit' && (
           <SuitPicker onSelect={handleSuitSelect} />
         )}
