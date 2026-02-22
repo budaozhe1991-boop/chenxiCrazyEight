@@ -122,17 +122,12 @@ const Card = ({
             <img 
               src={animal.image} 
               alt={animal.name}
-              className="w-full h-full object-cover opacity-20 grayscale"
+              className="w-full h-full object-cover opacity-90"
               referrerPolicy="no-referrer"
             />
-            <span className="absolute bottom-1 text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-              {animal.name}
-            </span>
+            {/* 移除背景渐变和名字，让画面更干净 */}
           </div>
         )}
-        <div className={`text-2xl sm:text-5xl ${SUIT_COLORS[card.suit]} drop-shadow-sm z-10`}>
-          {SUIT_SYMBOLS[card.suit]}
-        </div>
       </div>
 
       <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]} z-10`}>
@@ -268,7 +263,7 @@ const GameStartModal = ({ onStart }: { onStart: () => void }) => {
           onClick={onStart}
           className="relative z-10 w-full py-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-orange-500/30 transition-all active:scale-95 flex items-center justify-center gap-3 group"
         >
-          进入动物城
+          进入游戏
           <ChevronRight className="group-hover:translate-x-1 transition-transform" />
         </button>
       </motion.div>
@@ -432,12 +427,12 @@ export default function App() {
       {/* Zootopia Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://picsum.photos/seed/zootopia-landscape/1920/1080" 
+          src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2144&auto=format&fit=crop" 
           alt="Zootopia Background" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover scale-110"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-orange-500/20 via-black/40 to-black/90 backdrop-blur-[2px]" />
       </div>
 
       {/* Header */}
