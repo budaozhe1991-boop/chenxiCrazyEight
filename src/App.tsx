@@ -112,10 +112,10 @@ const Card = ({
       onClick={isPlayable ? onClick : undefined}
       className={`relative group w-16 h-24 sm:w-24 sm:h-36 bg-white rounded-lg border-2 ${
         isPlayable ? 'border-yellow-400 cursor-pointer shadow-yellow-400/50' : 'border-slate-200'
-      } shadow-xl flex flex-col p-0 select-none overflow-hidden ${className}`}
+      } shadow-xl flex flex-col p-0 select-none ${className}`}
     >
       <div className={`flex flex-col items-start leading-none pt-0.5 sm:pt-1 pl-1 sm:pl-1.5 ${SUIT_COLORS[card.suit]} z-10`}>
-        <span className="text-sm sm:text-lg font-bold">{card.rank}</span>
+        <span className="text-sm sm:text-lg font-bold font-mono">{card.rank}</span>
         <span className="text-[10px] sm:text-xs -mt-1">{SUIT_SYMBOLS[card.suit]}</span>
       </div>
       
@@ -134,7 +134,7 @@ const Card = ({
       </div>
 
       <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]} z-10 transition-opacity duration-200 ${showCornerOnHover ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
-        <span className="text-sm sm:text-lg font-bold">{card.rank}</span>
+        <span className="text-sm sm:text-lg font-bold font-mono">{card.rank}</span>
         <span className="text-[10px] sm:text-xs -mt-1">{SUIT_SYMBOLS[card.suit]}</span>
       </div>
     </motion.div>
@@ -523,7 +523,7 @@ export default function App() {
           <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px]">{hand.length} 张</span>
         </div>
         
-        <div className={`flex justify-center ${orientation === 'vertical' ? 'flex-col -space-y-16 sm:-space-y-24' : '-space-x-8 sm:-space-x-12'} h-20 sm:h-28`}>
+        <div className={`flex justify-center ${orientation === 'vertical' ? 'flex-col -space-y-16 sm:-space-y-24' : '-space-x-8 sm:-space-x-12'} h-24 sm:h-36`}>
           {hand.map((card) => (
             <Card key={card.id} isFaceDown className={`z-0 ${orientation === 'vertical' ? 'scale-50 sm:scale-75' : 'scale-75 sm:scale-90'} origin-center`} />
           ))}
@@ -551,7 +551,7 @@ export default function App() {
       <main className="flex-1 relative p-2 sm:p-4 flex flex-col items-center justify-between max-w-7xl mx-auto w-full z-10 overflow-y-auto no-scrollbar">
         
         {/* Top AI Area */}
-        <div className="w-full h-28 sm:h-40 flex justify-center items-center shrink-0">
+        <div className="w-full h-32 sm:h-44 flex justify-center items-center shrink-0">
           {state.playerCount === 2 ? (
             <AiPlayerArea 
               id="ai1" 
@@ -652,15 +652,15 @@ export default function App() {
         </div>
 
         {/* Player Area */}
-        <div className="w-full flex flex-col items-center gap-2 sm:gap-4 pb-4 h-40 sm:h-56 justify-end shrink-0">
+        <div className="w-full flex flex-col items-center gap-2 sm:gap-4 pb-6 h-48 sm:h-64 justify-end shrink-0">
           <div className="flex items-center gap-3 px-4 py-1.5 bg-black/30 rounded-full border border-white/10">
             <User size={16} className={state.currentTurn === 'player' ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
             <span className="text-xs font-bold uppercase tracking-wider">你的手牌</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">{state.playerHand.length} 张</span>
           </div>
 
-          <div className="w-full overflow-x-auto no-scrollbar px-10">
-            <div className="flex justify-center min-w-max mx-auto -space-x-8 sm:-space-x-12 h-32 sm:h-44 items-center pt-4">
+          <div className="w-full overflow-x-auto no-scrollbar px-10 pb-4">
+            <div className="flex justify-center min-w-max mx-auto -space-x-6 sm:-space-x-10 h-40 sm:h-52 items-center">
               {state.playerHand.map((card) => (
                 <Card 
                   key={card.id} 
