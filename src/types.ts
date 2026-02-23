@@ -8,16 +8,17 @@ export interface CardData {
 }
 
 export type GameStatus = 'waiting' | 'playing' | 'picking_suit' | 'game_over';
-export type PlayerType = 'player' | 'ai';
+export type PlayerId = 'player' | 'ai1' | 'ai2' | 'ai3';
 
 export interface GameState {
   deck: CardData[];
   playerHand: CardData[];
-  aiHand: CardData[];
+  aiHands: Record<string, CardData[]>;
   discardPile: CardData[];
-  currentTurn: PlayerType;
+  currentTurn: PlayerId;
   wildSuit: Suit | null;
   status: GameStatus;
-  winner: PlayerType | null;
+  winner: PlayerId | null;
   lastAction: string;
+  playerCount: 2 | 4;
 }

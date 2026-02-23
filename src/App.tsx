@@ -12,13 +12,14 @@ import {
   Cpu, 
   AlertCircle,
   ChevronRight,
-  Info
+  Info,
+  Home
 } from 'lucide-react';
 import { 
   CardData, 
   Suit, 
   GameStatus, 
-  PlayerType, 
+  PlayerId, 
   GameState 
 } from './types';
 import { 
@@ -34,6 +35,7 @@ interface CardProps {
   onClick?: () => void;
   isFaceDown?: boolean;
   isPlayable?: boolean;
+  showCornerOnHover?: boolean;
   className?: string;
   key?: React.Key;
 }
@@ -59,6 +61,7 @@ const Card = ({
   onClick, 
   isFaceDown = false, 
   isPlayable = false,
+  showCornerOnHover = false,
   className = "" 
 }: CardProps) => {
   if (isFaceDown) {
@@ -107,7 +110,7 @@ const Card = ({
       animate={{ scale: 1, opacity: 1, y: 0 }}
       whileHover={isPlayable ? { y: -10, scale: 1.05 } : {}}
       onClick={isPlayable ? onClick : undefined}
-      className={`relative w-16 h-24 sm:w-24 sm:h-36 bg-white rounded-lg border-2 ${
+      className={`relative group w-16 h-24 sm:w-24 sm:h-36 bg-white rounded-lg border-2 ${
         isPlayable ? 'border-yellow-400 cursor-pointer shadow-yellow-400/50' : 'border-slate-200'
       } shadow-xl flex flex-col p-0 select-none overflow-hidden ${className}`}
     >
@@ -130,7 +133,7 @@ const Card = ({
         )}
       </div>
 
-      <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]} z-10`}>
+      <div className={`flex flex-col items-end leading-none pb-0.5 sm:pb-1 pr-1 sm:pr-1.5 ${SUIT_COLORS[card.suit]} z-10 transition-opacity duration-200 ${showCornerOnHover ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
         <span className="text-sm sm:text-lg font-bold">{card.rank}</span>
         <span className="text-[10px] sm:text-xs -mt-1">{SUIT_SYMBOLS[card.suit]}</span>
       </div>
@@ -166,7 +169,7 @@ const SuitPicker = ({ onSelect }: { onSelect: (suit: Suit) => void }) => {
   );
 };
 
-const GameOverModal = ({ winner, onRestart }: { winner: PlayerType | null; onRestart: () => void }) => {
+const GameOverModal = ({ winner, onRestart }: { winner: PlayerId | null; onRestart: () => void }) => {
   const isPlayerWinner = winner === 'player';
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -181,10 +184,10 @@ const GameOverModal = ({ winner, onRestart }: { winner: PlayerType | null; onRes
           <Trophy size={40} />
         </div>
         <h2 className="text-3xl font-black mb-2 text-slate-800">
-          {isPlayerWinner ? '恭喜获胜！' : '遗憾落败'}
+          {isPlayerWinner ? '恭喜获胜！' : '游戏结束'}
         </h2>
         <p className="text-slate-500 mb-8">
-          {isPlayerWinner ? '你打败了 AI，成为了 8 点之王！' : 'AI 这次更胜一筹，再接再厉。'}
+          {isPlayerWinner ? '你成为了 8 点之王！' : `${winner} 获得了胜利，再接再厉。`}
         </p>
         <button
           onClick={onRestart}
@@ -200,71 +203,104 @@ const GameOverModal = ({ winner, onRestart }: { winner: PlayerType | null; onRes
 
 // --- Main App ---
 
-const GameStartModal = ({ onStart }: { onStart: () => void }) => {
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="bg-white rounded-[2rem] p-8 sm:p-12 max-w-lg w-full shadow-2xl overflow-hidden relative"
-      >
-        {/* Zootopia Background Image for Modal */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <img 
-            src="https://picsum.photos/seed/zootopia-city/800/600" 
-            alt="Zootopia City" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        </div>
+const GameStartModal = ({ onStart }: { onStart: (count: 2 | 4) => void }) => {
+  const [playerCount, setPlayerCount] = useState<2 | 4>(2);
 
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500" />
-        
-        <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="w-24 h-24 bg-yellow-500 rounded-3xl flex items-center justify-center shadow-xl shadow-yellow-500/20 mb-4 transform -rotate-6 border-4 border-white">
-            <span className="font-black text-5xl text-white drop-shadow-md">8</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight text-center leading-tight">
-            陈熙超级<br/>疯狂 8 点
+  return (
+    <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center overflow-hidden">
+      {/* Zootopia Background Image for Full Screen */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2144&auto=format&fit=crop" 
+          alt="Zootopia City" 
+          className="w-full h-full object-cover opacity-20"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/60 to-white" />
+      </div>
+
+      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 z-10" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 flex flex-col items-center max-w-lg w-full px-6"
+      >
+        <div className="flex flex-col items-center mb-8">
+          <motion.div 
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: -6 }}
+            transition={{ type: 'spring', damping: 12, delay: 0.2 }}
+            className="w-20 h-20 sm:w-24 sm:h-24 bg-yellow-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-yellow-500/30 mb-4 border-4 border-white"
+          >
+            <span className="font-black text-4xl sm:text-5xl text-white drop-shadow-md">8</span>
+          </motion.div>
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-800 tracking-tighter text-center leading-none">
+            陈熙超级疯狂 8 点
           </h1>
-          <div className="mt-3 px-4 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full">
+          <div className="mt-4 px-4 py-1.5 bg-indigo-600 text-white text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] rounded-full shadow-lg shadow-indigo-200">
             Zootopia Edition
           </div>
         </div>
 
-        <div className="relative z-10 space-y-6 mb-10">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <Info size={20} className="text-orange-500" />
+        <div className="w-full space-y-8 mb-10">
+          <div className="flex flex-col gap-4">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest text-center">选择游戏模式</label>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setPlayerCount(2)}
+                className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all border-4 ${
+                  playerCount === 2 
+                    ? 'bg-orange-500 border-orange-500 text-white shadow-2xl shadow-orange-500/40 scale-105' 
+                    : 'bg-white border-slate-100 text-slate-300 hover:border-orange-200'
+                }`}
+              >
+                2 人对战
+              </button>
+              <button
+                onClick={() => setPlayerCount(4)}
+                className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all border-4 ${
+                  playerCount === 4 
+                    ? 'bg-orange-500 border-orange-500 text-white shadow-2xl shadow-orange-500/40 scale-105' 
+                    : 'bg-white border-slate-100 text-slate-300 hover:border-orange-200'
+                }`}
+              >
+                4 人混战
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-md rounded-[2rem] p-6 sm:p-8 border border-slate-100 shadow-xl">
+            <h2 className="text-lg font-black text-slate-800 mb-5 flex items-center gap-3">
+              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <Info size={18} className="text-orange-600" />
+              </div>
               游戏规则
             </h2>
-            <ul className="space-y-3 text-slate-600 text-sm leading-relaxed">
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
-                <span>每人起始 8 张牌，率先出完所有牌的一方获胜。</span>
+            <ul className="space-y-4 text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
+              <li className="flex gap-4">
+                <span className="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-black shadow-md">1</span>
+                <span>每人起始 8 张牌，率先出完牌获胜。</span>
               </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
-                <span>出牌必须与弃牌堆顶部的牌<b>花色相同</b>或<b>数字相同</b>。</span>
+              <li className="flex gap-4">
+                <span className="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-black shadow-md">2</span>
+                <span>出牌需与弃牌堆顶<b>花色</b>或<b>数字</b>相同。</span>
               </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">3</span>
-                <span><b>数字 8 是万能牌！</b> 可以在任何时候打出，并允许你指定新的花色。</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-5 h-5 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-[10px] font-bold">4</span>
-                <span>如果没有可出的牌，必须从摸牌堆摸一张牌。</span>
+              <li className="flex gap-4">
+                <span className="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-black shadow-md">3</span>
+                <span><b>数字 8 是万能牌！</b> 可随时打出并指定新花色。</span>
               </li>
             </ul>
           </div>
         </div>
 
         <button
-          onClick={onStart}
-          className="relative z-10 w-full py-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-orange-500/30 transition-all active:scale-95 flex items-center justify-center gap-3 group"
+          onClick={() => onStart(playerCount)}
+          className="w-full py-6 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-[2rem] font-black text-xl sm:text-2xl shadow-2xl shadow-orange-500/40 transition-all active:scale-95 flex items-center justify-center gap-4 group"
         >
-          进入游戏
-          <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+          立即开始
+          <ChevronRight size={28} className="group-hover:translate-x-2 transition-transform" />
         </button>
       </motion.div>
     </div>
@@ -275,22 +311,28 @@ export default function App() {
   const [state, setState] = useState<GameState>({
     deck: [],
     playerHand: [],
-    aiHand: [],
+    aiHands: {},
     discardPile: [],
     currentTurn: 'player',
     wildSuit: null,
     status: 'waiting',
     winner: null,
-    lastAction: '欢迎来到 陈熙超级疯狂 8 点！'
+    lastAction: '欢迎来到 陈熙超级疯狂 8 点！',
+    playerCount: 2
   });
 
   const [pendingEight, setPendingEight] = useState<boolean>(false);
 
   // Initialize game
-  const initGame = useCallback(() => {
+  const initGame = useCallback((count: 2 | 4 = 2) => {
     const fullDeck = createDeck();
     const playerHand = fullDeck.splice(0, 8);
-    const aiHand = fullDeck.splice(0, 8);
+    const aiHands: Record<string, CardData[]> = {};
+    
+    const aiCount = count - 1;
+    for (let i = 1; i <= aiCount; i++) {
+      aiHands[`ai${i}`] = fullDeck.splice(0, 8);
+    }
     
     // Ensure first discard is not an 8
     let firstDiscardIndex = 0;
@@ -302,15 +344,20 @@ export default function App() {
     setState({
       deck: fullDeck,
       playerHand,
-      aiHand,
+      aiHands,
       discardPile,
       currentTurn: 'player',
       wildSuit: null,
       status: 'playing',
       winner: null,
-      lastAction: '游戏开始！你的回合。'
+      lastAction: '游戏开始！你的回合。',
+      playerCount: count
     });
     setPendingEight(false);
+  }, []);
+
+  const goHome = useCallback(() => {
+    setState(prev => ({ ...prev, status: 'waiting' }));
   }, []);
 
   // 移除自动开始，改为由开始按钮触发
@@ -322,91 +369,124 @@ export default function App() {
 
   // AI Turn Logic
   useEffect(() => {
-    if (state.status === 'playing' && state.currentTurn === 'ai' && topCard) {
+    if (state.status === 'playing' && state.currentTurn.startsWith('ai') && topCard) {
       const timer = setTimeout(() => {
-        handleAiTurn();
+        handleAiTurn(state.currentTurn);
       }, 1500);
       return () => clearTimeout(timer);
     }
   }, [state.status, state.currentTurn, topCard]);
 
-  const handleAiTurn = () => {
+  const getNextTurn = (current: PlayerId, count: 2 | 4): PlayerId => {
+    if (count === 2) {
+      return current === 'player' ? 'ai1' : 'player';
+    } else {
+      const order: PlayerId[] = ['player', 'ai1', 'ai2', 'ai3'];
+      const currentIndex = order.indexOf(current);
+      return order[(currentIndex + 1) % 4];
+    }
+  };
+
+  const handleAiTurn = (aiId: PlayerId) => {
     if (!topCard) return;
-    const playableCards = state.aiHand.filter(card => canPlayCard(card, topCard, state.wildSuit));
+    const aiHand = state.aiHands[aiId];
+    if (!aiHand) return;
+
+    const playableCards = aiHand.filter(card => canPlayCard(card, topCard, state.wildSuit));
     
     // 降低难度逻辑：30% 的概率 AI 即使有牌也会选择摸牌（犯错）
     const makeMistake = Math.random() < 0.3;
 
     if (playableCards.length > 0 && !makeMistake) {
-      // 随机选择一张可出的牌，而不是优先不出 8
       const cardToPlay = playableCards[Math.floor(Math.random() * playableCards.length)];
-      playCard('ai', cardToPlay);
+      playCard(aiId, cardToPlay);
     } else if (state.deck.length > 0) {
-      drawCard('ai');
+      drawCard(aiId);
     } else if (playableCards.length > 0) {
-      // 如果摸牌堆空了，但手上有牌，AI 还是得强制出牌（防止死锁）
       const cardToPlay = playableCards[Math.floor(Math.random() * playableCards.length)];
-      playCard('ai', cardToPlay);
+      playCard(aiId, cardToPlay);
     } else {
-      // Skip turn if no deck and no playable cards
       setState(prev => ({
         ...prev,
-        currentTurn: 'player',
-        lastAction: 'AI 无牌可出且摸牌堆为空，跳过回合。'
+        currentTurn: getNextTurn(aiId, prev.playerCount),
+        lastAction: `${aiId} 无牌可出且摸牌堆为空，跳过回合。`
       }));
     }
   };
 
-  const playCard = (player: PlayerType, card: CardData) => {
+  const playCard = (playerId: PlayerId, card: CardData) => {
     const isEight = card.rank === '8';
     
     setState(prev => {
-      const handKey = player === 'player' ? 'playerHand' : 'aiHand';
-      const newHand = prev[handKey].filter(c => c.id !== card.id);
+      let newHand: CardData[];
+      let newAiHands = { ...prev.aiHands };
+
+      if (playerId === 'player') {
+        newHand = prev.playerHand.filter(c => c.id !== card.id);
+      } else {
+        newHand = prev.aiHands[playerId].filter(c => c.id !== card.id);
+        newAiHands[playerId] = newHand;
+      }
+
       const isGameOver = newHand.length === 0;
 
       // If AI plays an 8, pick a random suit
       let newWildSuit = null;
-      if (isEight && player === 'ai') {
+      if (isEight && playerId.startsWith('ai')) {
         const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
         newWildSuit = suits[Math.floor(Math.random() * suits.length)];
       }
 
+      const nextTurn = isEight && playerId === 'player' ? 'player' : getNextTurn(playerId, prev.playerCount);
+
       return {
         ...prev,
-        [handKey]: newHand,
+        playerHand: playerId === 'player' ? newHand : prev.playerHand,
+        aiHands: newAiHands,
         discardPile: [...prev.discardPile, card],
-        wildSuit: isEight ? (player === 'ai' ? newWildSuit : prev.wildSuit) : null,
-        currentTurn: isEight && player === 'player' ? 'player' : (player === 'player' ? 'ai' : 'player'),
-        status: isGameOver ? 'game_over' : (isEight && player === 'player' ? 'picking_suit' : 'playing'),
-        winner: isGameOver ? player : null,
-        lastAction: `${player === 'player' ? '你' : 'AI'} 打出了 ${card.rank}${SUIT_SYMBOLS[card.suit]}${isEight && player === 'ai' ? `，并指定了 ${newWildSuit}` : ''}`
+        wildSuit: isEight ? (playerId.startsWith('ai') ? newWildSuit : prev.wildSuit) : null,
+        currentTurn: nextTurn,
+        status: isGameOver ? 'game_over' : (isEight && playerId === 'player' ? 'picking_suit' : 'playing'),
+        winner: isGameOver ? playerId : null,
+        lastAction: `${playerId === 'player' ? '你' : playerId} 打出了 ${card.rank}${SUIT_SYMBOLS[card.suit]}${isEight && playerId.startsWith('ai') ? `，并指定了 ${newWildSuit}` : ''}`
       };
     });
 
-    if (isEight && player === 'player') {
+    if (isEight && playerId === 'player') {
       setPendingEight(true);
     }
   };
 
-  const drawCard = (player: PlayerType) => {
-    if (state.deck.length === 0) return;
+  const drawCard = (playerId: PlayerId) => {
+    if (state.deck.length === 0) {
+      setState(prev => ({
+        ...prev,
+        currentTurn: getNextTurn(playerId, prev.playerCount),
+        lastAction: `${playerId === 'player' ? '你' : playerId} 摸不到牌，跳过回合。`
+      }));
+      return;
+    }
 
     setState(prev => {
       const newDeck = [...prev.deck];
       const drawnCard = newDeck.pop()!;
-      const handKey = player === 'player' ? 'playerHand' : 'aiHand';
       
-      // Check if drawn card is playable immediately
-      const canPlayImmediately = canPlayCard(drawnCard, topCard, state.wildSuit);
+      let newPlayerHand = prev.playerHand;
+      let newAiHands = { ...prev.aiHands };
+
+      if (playerId === 'player') {
+        newPlayerHand = [...prev.playerHand, drawnCard];
+      } else {
+        newAiHands[playerId] = [...prev.aiHands[playerId], drawnCard];
+      }
       
       return {
         ...prev,
         deck: newDeck,
-        [handKey]: [...prev[handKey], drawnCard],
-        lastAction: `${player === 'player' ? '你' : 'AI'} 摸了一张牌。`,
-        // In some rules, you can play immediately, but let's keep it simple: draw ends turn unless specified
-        currentTurn: player === 'player' ? 'ai' : 'player'
+        playerHand: newPlayerHand,
+        aiHands: newAiHands,
+        currentTurn: getNextTurn(playerId, prev.playerCount),
+        lastAction: `${playerId === 'player' ? '你' : playerId} 摸了一张牌。`
       };
     });
   };
@@ -416,10 +496,40 @@ export default function App() {
       ...prev,
       wildSuit: suit,
       status: 'playing',
-      currentTurn: 'ai',
+      currentTurn: getNextTurn('player', prev.playerCount),
       lastAction: `你指定了 ${suit === 'hearts' ? '红心' : suit === 'diamonds' ? '方块' : suit === 'clubs' ? '梅花' : '黑桃'}`
     }));
     setPendingEight(false);
+  };
+
+  const AiPlayerArea = ({ 
+    id, 
+    hand, 
+    isCurrentTurn, 
+    label, 
+    orientation = 'horizontal' 
+  }: { 
+    id: string, 
+    hand: CardData[], 
+    isCurrentTurn: boolean, 
+    label: string,
+    orientation?: 'horizontal' | 'vertical'
+  }) => {
+    return (
+      <div className={`flex flex-col items-center gap-2 ${orientation === 'vertical' ? 'h-full justify-center' : 'w-full'}`}>
+        <div className="flex items-center gap-2 px-3 py-1 bg-black/30 rounded-full border border-white/10">
+          <Cpu size={14} className={isCurrentTurn ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px]">{hand.length} 张</span>
+        </div>
+        
+        <div className={`flex justify-center ${orientation === 'vertical' ? 'flex-col -space-y-16 sm:-space-y-24' : '-space-x-8 sm:-space-x-12'} h-20 sm:h-28`}>
+          {hand.map((card) => (
+            <Card key={card.id} isFaceDown className={`z-0 ${orientation === 'vertical' ? 'scale-50 sm:scale-75' : 'scale-75 sm:scale-90'} origin-center`} />
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -435,137 +545,170 @@ export default function App() {
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/20 via-black/40 to-black/90 backdrop-blur-[2px]" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 p-4 sm:p-6 flex items-center justify-between border-b border-white/10 bg-black/20 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <span className="font-black text-xl">8</span>
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-none">陈熙超级疯狂 8 点</h1>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">简单模式</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={initGame}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
-            title="重新开始"
-          >
-            <RotateCcw size={24} />
-          </button>
-        </div>
-      </header>
-
+      {/* Header Removed as per request */}
+      
       {/* Game Board */}
-      <main className="flex-1 relative p-4 sm:p-8 flex flex-col items-center justify-between gap-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 relative p-2 sm:p-4 flex flex-col items-center justify-between max-w-7xl mx-auto w-full z-10 overflow-y-auto no-scrollbar">
         
-        {/* AI Area */}
-        <div className="w-full flex flex-col items-center gap-4">
-          <div className="flex items-center gap-3 px-4 py-2 bg-black/30 rounded-full border border-white/10">
-            <Cpu size={18} className={state.currentTurn === 'ai' ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
-            <span className="text-sm font-bold uppercase tracking-wider">AI 对手</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{state.aiHand.length} 张牌</span>
-          </div>
-          
-          <div className="flex justify-center -space-x-8 sm:-space-x-12 h-24 sm:h-36">
-            {state.aiHand.map((card, i) => (
-              <Card key={card.id} isFaceDown className="z-0" />
-            ))}
-          </div>
+        {/* Top AI Area */}
+        <div className="w-full h-28 sm:h-40 flex justify-center items-center shrink-0">
+          {state.playerCount === 2 ? (
+            <AiPlayerArea 
+              id="ai1" 
+              hand={state.aiHands.ai1 || []} 
+              isCurrentTurn={state.currentTurn === 'ai1'} 
+              label="AI 对手" 
+            />
+          ) : (
+            <AiPlayerArea 
+              id="ai2" 
+              hand={state.aiHands.ai2 || []} 
+              isCurrentTurn={state.currentTurn === 'ai2'} 
+              label="AI 2" 
+            />
+          )}
         </div>
 
-        {/* Center Area (Deck & Discard) */}
-        <div className="flex items-center gap-8 sm:gap-16">
-          {/* Draw Pile */}
-          <div className="flex flex-col items-center gap-2">
-            <div 
-              onClick={() => state.currentTurn === 'player' && state.status === 'playing' && drawCard('player')}
-              className={`relative group ${state.currentTurn === 'player' && state.status === 'playing' ? 'cursor-pointer' : 'opacity-50'}`}
-            >
-              <Card isFaceDown className="shadow-2xl" />
-              {state.deck.length > 0 && (
-                <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white/20">
-                  {state.deck.length}
-                </div>
-              )}
-              {state.currentTurn === 'player' && state.status === 'playing' && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold text-indigo-300 uppercase tracking-widest"
-                >
-                  点击摸牌
-                </motion.div>
-              )}
+        {/* Middle Area with Side AIs and Center Deck */}
+        <div className="flex-1 w-full flex items-center justify-between gap-2 sm:gap-8">
+          {/* Left AI */}
+          <div className="w-20 sm:w-32 flex justify-center">
+            {state.playerCount === 4 && (
+              <AiPlayerArea 
+                id="ai1" 
+                hand={state.aiHands.ai1 || []} 
+                isCurrentTurn={state.currentTurn === 'ai1'} 
+                label="AI 1" 
+                orientation="vertical"
+              />
+            )}
+          </div>
+
+          {/* Center Area (Deck & Discard) */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-16 shrink-0 my-4">
+            {/* Draw Pile */}
+            <div className="flex flex-col items-center gap-2">
+              <div 
+                onClick={() => state.currentTurn === 'player' && state.status === 'playing' && drawCard('player')}
+                className={`relative group ${state.currentTurn === 'player' && state.status === 'playing' ? 'cursor-pointer' : 'opacity-50'}`}
+              >
+                <Card isFaceDown className="shadow-2xl scale-90 sm:scale-100" />
+                {state.deck.length > 0 && (
+                  <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white/20">
+                    {state.deck.length}
+                  </div>
+                )}
+                {state.currentTurn === 'player' && state.status === 'playing' && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-indigo-300 uppercase tracking-widest"
+                  >
+                    点击摸牌
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            {/* Discard Pile */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="relative">
+                <AnimatePresence mode="popLayout">
+                  {topCard && (
+                    <Card 
+                      key={topCard.id} 
+                      card={topCard} 
+                      className="shadow-2xl ring-4 ring-white/10 scale-90 sm:scale-100"
+                    />
+                  )}
+                </AnimatePresence>
+                {state.wildSuit && (
+                  <motion.div 
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -top-4 -right-4 w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-indigo-500"
+                  >
+                    <span className={`text-xl sm:text-2xl ${SUIT_COLORS[state.wildSuit]}`}>
+                      {SUIT_SYMBOLS[state.wildSuit]}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Discard Pile */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="relative">
-              <AnimatePresence mode="popLayout">
-                {topCard && (
-                  <Card 
-                    key={topCard.id} 
-                    card={topCard} 
-                    className="shadow-2xl ring-4 ring-white/10"
-                  />
-                )}
-              </AnimatePresence>
-              {state.wildSuit && (
-                <motion.div 
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="absolute -top-4 -right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-indigo-500"
-                >
-                  <span className={`text-2xl ${SUIT_COLORS[state.wildSuit]}`}>
-                    {SUIT_SYMBOLS[state.wildSuit]}
-                  </span>
-                </motion.div>
-              )}
-            </div>
+          {/* Right AI */}
+          <div className="w-20 sm:w-32 flex justify-center">
+            {state.playerCount === 4 && (
+              <AiPlayerArea 
+                id="ai3" 
+                hand={state.aiHands.ai3 || []} 
+                isCurrentTurn={state.currentTurn === 'ai3'} 
+                label="AI 3" 
+                orientation="vertical"
+              />
+            )}
           </div>
         </div>
 
         {/* Player Area */}
-        <div className="w-full flex flex-col items-center gap-6">
-          <div className="flex items-center gap-3 px-4 py-2 bg-black/30 rounded-full border border-white/10">
-            <User size={18} className={state.currentTurn === 'player' ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
-            <span className="text-sm font-bold uppercase tracking-wider">你的手牌</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{state.playerHand.length} 张牌</span>
+        <div className="w-full flex flex-col items-center gap-2 sm:gap-4 pb-4 h-40 sm:h-56 justify-end shrink-0">
+          <div className="flex items-center gap-3 px-4 py-1.5 bg-black/30 rounded-full border border-white/10">
+            <User size={16} className={state.currentTurn === 'player' ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
+            <span className="text-xs font-bold uppercase tracking-wider">你的手牌</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">{state.playerHand.length} 张</span>
           </div>
 
-          <div className="flex justify-center -space-x-8 sm:-space-x-12 h-28 sm:h-40 px-10 w-full overflow-x-auto no-scrollbar pb-4">
-            {state.playerHand.map((card) => (
-              <Card 
-                key={card.id} 
-                card={card} 
-                className="hover:z-50 transition-all"
-                isPlayable={state.currentTurn === 'player' && state.status === 'playing' && !!topCard && canPlayCard(card, topCard, state.wildSuit)}
-                onClick={() => playCard('player', card)}
-              />
-            ))}
+          <div className="w-full overflow-x-auto no-scrollbar px-10">
+            <div className="flex justify-center min-w-max mx-auto -space-x-8 sm:-space-x-12 h-32 sm:h-44 items-center pt-4">
+              {state.playerHand.map((card) => (
+                <Card 
+                  key={card.id} 
+                  card={card} 
+                  className="hover:z-50 transition-all scale-90 sm:scale-100"
+                  showCornerOnHover={true}
+                  isPlayable={state.currentTurn === 'player' && state.status === 'playing' && !!topCard && canPlayCard(card, topCard, state.wildSuit)}
+                  onClick={() => playCard('player', card)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </main>
 
       {/* Footer / Status Bar */}
-      <footer className="relative z-10 p-4 bg-black/40 border-t border-white/10 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-indigo-200">
-            <Info size={18} />
-            <p className="text-sm font-medium">{state.lastAction}</p>
+      <footer className="relative z-10 h-14 sm:h-16 bg-black/60 border-t border-white/10 backdrop-blur-md flex items-center">
+        <div className="max-w-7xl mx-auto w-full px-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-indigo-200 min-w-0 flex-1">
+            <Info size={18} className="shrink-0" />
+            <p className="text-xs sm:text-sm font-medium truncate">{state.lastAction}</p>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${
+          <div className="flex items-center gap-3">
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
               state.currentTurn === 'player' 
                 ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400' 
                 : 'bg-white/5 border-white/10 text-white/40'
             }`}>
               {state.currentTurn === 'player' ? '你的回合' : 'AI 回合中...'}
+            </div>
+            
+            <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10">
+              <button 
+                onClick={goHome}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
+                title="回到首页"
+              >
+                <Home size={18} />
+              </button>
+              <div className="w-px h-4 bg-white/10 mx-1" />
+              <button 
+                onClick={() => initGame(state.playerCount)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
+                title="重新开始"
+              >
+                <RotateCcw size={18} />
+              </button>
             </div>
           </div>
         </div>
@@ -580,7 +723,7 @@ export default function App() {
           <SuitPicker onSelect={handleSuitSelect} />
         )}
         {state.status === 'game_over' && (
-          <GameOverModal winner={state.winner} onRestart={initGame} />
+          <GameOverModal winner={state.winner} onRestart={() => initGame(state.playerCount)} />
         )}
       </AnimatePresence>
     </div>
